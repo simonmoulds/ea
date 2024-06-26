@@ -354,8 +354,10 @@ ea_timeseries_values <- function(measure,
     rename(measure = 1)
 
   root <- paste0(ea_base_url(), "/id/measures/")
-  content_dat <- content_dat |> 
-    mutate(measure = gsub(root, "", measure)) |> 
-    mutate(date = as.Date(date), dateTime = as.POSIXct(dateTime))
+  content_dat <- content_dat
+  content_dat$measure <- gsub(root, "", content_dat$measure)
+  content_dat$date <- as.Date(content_dat$date)
+  # TODO check timezone is correct
+  content_dat$dateTime <- as.POSIXct(content_dat$dateTime, tz = "GMT")
   return(content_dat)
 }
