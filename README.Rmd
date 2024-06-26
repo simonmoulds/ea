@@ -1,0 +1,63 @@
+---
+output: github_document
+---
+
+<!-- README.md is generated from README.Rmd. Please edit that file -->
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  fig.path = "man/figures/README-",
+  out.width = "100%"
+)
+```
+
+# ea
+
+<!-- badges: start -->
+[![R-CMD-check](https://github.com/simonmoulds/sepa/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/simonmoulds/sepa/actions/workflows/R-CMD-check.yaml)
+<!-- badges: end -->
+
+The sepa package provides access to environmental data collected by the Scottish Environment Protection Agency (SEPA). 
+
+## Installation
+
+You can install the development version of sepa from [GitHub](https://github.com/) with:
+
+```{r}
+devtools::install_github("simonmoulds/ea")
+```
+
+## Example
+
+This is a basic example which shows you how to solve a common problem:
+
+```{r example}
+library(dplyr)
+library(lubridate)
+library(ggplot2)
+library(sepa)
+```
+
+The steps required to download historical streamflow data are outlined below: 
+```{r}
+stns <- ea_station_list(observed_property = "waterFlow")
+# Choose arbitrary station
+stn_id <- stns$notation[1]
+available_ts <- ea_timeseries_list(stn_id)
+# Get the timeseries ID for daily mean flow
+ts_id <- available_ts |> 
+  filter(parameter == "flow" & period == 86400 & valueType == "mean") |> 
+  pull(notation)
+# Retrieve data
+ts <- ea_timeseries_values(measure = ts_id, min_date = Sys.Date() %m-% months(1))
+head(ts)
+```
+
+Once we have obtained the data we can plot the timeseries:
+
+```{r, echo = FALSE}
+p <- ggplot(data = ts, aes(x = date, y = value)) + geom_line()
+p
+```
