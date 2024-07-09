@@ -55,9 +55,7 @@
 </h2>
 <p>You can install the development version of ea from <a href="https://github.com/" class="external-link">GitHub</a> with:</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu">devtools</span><span class="fu">::</span><span class="fu">install_github</span><span class="op">(</span><span class="st">"simonmoulds/ea"</span><span class="op">)</span></span>
-<span><span class="co">#&gt; Skipping install of 'ea' from a github remote, the SHA1 (450d8068) has not changed since last install.</span></span>
-<span><span class="co">#&gt;   Use `force = TRUE` to force installation</span></span></code></pre></div>
+<code class="sourceCode R"><span><span class="fu">devtools</span><span class="fu">::</span><span class="fu">install_github</span><span class="op">(</span><span class="st">"simonmoulds/ea"</span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level2">
 <h2 id="example">Example<a class="anchor" aria-label="anchor" href="#example"></a>
@@ -65,48 +63,93 @@
 <p>Here is a basic example that shows you how to use the package to download streamflow timeseries data from the EA Hydrology API:</p>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://dplyr.tidyverse.org" class="external-link">dplyr</a></span><span class="op">)</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Attaching package: 'dplyr'</span></span>
-<span><span class="co">#&gt; The following objects are masked from 'package:stats':</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt;     filter, lag</span></span>
-<span><span class="co">#&gt; The following objects are masked from 'package:base':</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt;     intersect, setdiff, setequal, union</span></span></code></pre></div>
-<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://lubridate.tidyverse.org" class="external-link">lubridate</a></span><span class="op">)</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Attaching package: 'lubridate'</span></span>
-<span><span class="co">#&gt; The following objects are masked from 'package:base':</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt;     date, intersect, setdiff, union</span></span></code></pre></div>
-<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://ggplot2.tidyverse.org" class="external-link">ggplot2</a></span><span class="op">)</span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://lubridate.tidyverse.org" class="external-link">lubridate</a></span><span class="op">)</span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://ggplot2.tidyverse.org" class="external-link">ggplot2</a></span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://simonmoulds.github.io/ea/">ea</a></span><span class="op">)</span></span></code></pre></div>
-<p>The steps required to download historical streamflow data are outlined below:</p>
-<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="co"># Get discharge stations on the River Thames within 5km of Abingdon</span></span>
-<span><span class="va">abingdon_stations</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/ea_station_list.html">ea_station_list</a></span><span class="op">(</span></span>
+<p>First we get discharge stations on the River Thames within 5km of Abingdon:</p>
+<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">stns</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/ea_station_list.html">ea_station_list</a></span><span class="op">(</span></span>
 <span>  sample_of <span class="op">=</span> <span class="st">"River Thames"</span>, observed_property <span class="op">=</span> <span class="st">"waterFlow"</span>,</span>
 <span>  lat <span class="op">=</span> <span class="fl">51.6708</span>, long <span class="op">=</span> <span class="op">-</span><span class="fl">1.2880</span>, dist <span class="op">=</span> <span class="fl">5</span></span>
 <span><span class="op">)</span></span>
-<span><span class="va">guid</span> <span class="op">&lt;-</span> <span class="va">abingdon_stations</span><span class="op">$</span><span class="va">stationGuid</span></span>
+<span><span class="va">stns</span></span>
+<span><span class="co">#&gt; # A tibble: 1 × 21</span></span>
+<span><span class="co">#&gt;   `@id`  label notation easting northing   lat  long type  riverName stationGuid</span></span>
+<span><span class="co">#&gt;   &lt;chr&gt;  &lt;chr&gt; &lt;chr&gt;      &lt;int&gt;    &lt;int&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;lis&gt; &lt;chr&gt;     &lt;chr&gt;      </span></span>
+<span><span class="co">#&gt; 1 http:… Sutt… b0713e8…  451702   194623  51.6 -1.25 &lt;df&gt;  River Th… b0713e87-c…</span></span>
+<span><span class="co">#&gt; # ℹ 11 more variables: stationReference &lt;chr&gt;, wiskiID &lt;chr&gt;, RLOIid &lt;chr&gt;,</span></span>
+<span><span class="co">#&gt; #   rloiStationLink &lt;df[,1]&gt;, catchmentArea &lt;dbl&gt;, dateOpened &lt;chr&gt;,</span></span>
+<span><span class="co">#&gt; #   nrfaStationID &lt;chr&gt;, nrfaStationURL &lt;chr&gt;, observedProperty &lt;list&gt;,</span></span>
+<span><span class="co">#&gt; #   status &lt;list&gt;, measures &lt;list&gt;</span></span></code></pre></div>
+<p>There is only one station available. We extract its global unique identifier (GUID), and use <code>ea_timeseries_list</code> to retrieve the available timeseries data:</p>
+<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">guid</span> <span class="op">&lt;-</span> <span class="va">stns</span><span class="op">$</span><span class="va">stationGuid</span></span>
 <span><span class="va">tslist</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/ea_timeseries_list.html">ea_timeseries_list</a></span><span class="op">(</span><span class="va">guid</span><span class="op">)</span></span>
-<span></span>
-<span><span class="co"># Filter to get daily mean flow </span></span>
-<span><span class="va">measure</span> <span class="op">&lt;-</span> <span class="va">tslist</span> <span class="op">|&gt;</span></span>
+<span><span class="va">tslist</span></span>
+<span><span class="co">#&gt; # A tibble: 7 × 15</span></span>
+<span><span class="co">#&gt;   `@id`       label parameter parameterName notation period periodName valueType</span></span>
+<span><span class="co">#&gt;   &lt;chr&gt;       &lt;chr&gt; &lt;chr&gt;     &lt;chr&gt;         &lt;chr&gt;     &lt;int&gt; &lt;chr&gt;      &lt;chr&gt;    </span></span>
+<span><span class="co">#&gt; 1 http://env… Dail… flow      Flow          b0713e8…  86400 daily      mean     </span></span>
+<span><span class="co">#&gt; 2 http://env… Dail… flow      Flow          b0713e8…  86400 daily      min      </span></span>
+<span><span class="co">#&gt; 3 http://env… Dail… flow      Flow          b0713e8…  86400 daily      max      </span></span>
+<span><span class="co">#&gt; 4 http://env… 15mi… flow      Flow          b0713e8…    900 15min      instanta…</span></span>
+<span><span class="co">#&gt; 5 http://env… Dail… level     Level         b0713e8…  86400 daily      max      </span></span>
+<span><span class="co">#&gt; 6 http://env… 15mi… level     Level         b0713e8…    900 15min      instanta…</span></span>
+<span><span class="co">#&gt; 7 http://env… Dail… level     Level         b0713e8…  86400 daily      min      </span></span>
+<span><span class="co">#&gt; # ℹ 7 more variables: valueStatistic &lt;df[,2]&gt;, observationType &lt;df[,2]&gt;,</span></span>
+<span><span class="co">#&gt; #   observedProperty &lt;df[,2]&gt;, station &lt;df[,5]&gt;, unit &lt;df[,1]&gt;, unitName &lt;chr&gt;,</span></span>
+<span><span class="co">#&gt; #   hasTelemetry &lt;lgl&gt;</span></span></code></pre></div>
+<p>We can see that there are several timeseries available for this station, each referenced with a unique measurement ID provided in the <code>notation</code> column. We retrieve the ID for daily mean flow:</p>
+<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">measure</span> <span class="op">&lt;-</span> <span class="va">tslist</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="va">period</span> <span class="op">==</span> <span class="fl">86400</span> <span class="op">&amp;</span> <span class="va">valueType</span> <span class="op">==</span> <span class="st">"mean"</span><span class="op">)</span> <span class="op">|&gt;</span> </span>
 <span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/pull.html" class="external-link">pull</a></span><span class="op">(</span><span class="va">notation</span><span class="op">)</span></span>
-<span><span class="va">min_date</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/Sys.time.html" class="external-link">Sys.Date</a></span><span class="op">(</span><span class="op">)</span> <span class="op">%m-%</span> <span class="fu"><a href="https://rdrr.io/r/base/weekday.POSIXt.html" class="external-link">months</a></span><span class="op">(</span><span class="fl">3</span><span class="op">)</span></span>
+<span><span class="va">measure</span></span>
+<span><span class="co">#&gt; [1] "b0713e87-cab3-46e4-bfb3-f0bbb91cedf6-flow-m-86400-m3s-qualified"</span></span></code></pre></div>
+<p>We can use the measurement ID to retrieve the timeseries data:</p>
+<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">min_date</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/Sys.time.html" class="external-link">Sys.Date</a></span><span class="op">(</span><span class="op">)</span> <span class="op">%m-%</span> <span class="fu"><a href="https://rdrr.io/r/base/weekday.POSIXt.html" class="external-link">months</a></span><span class="op">(</span><span class="fl">3</span><span class="op">)</span></span>
 <span><span class="va">ts</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/ea_timeseries_values.html">ea_timeseries_values</a></span><span class="op">(</span><span class="va">measure</span>, min_date <span class="op">=</span> <span class="va">min_date</span><span class="op">)</span></span>
-<span></span>
-<span><span class="co"># Alternatively: </span></span>
-<span><span class="va">ts</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/ea_timeseries_values.html">ea_timeseries_values</a></span><span class="op">(</span></span>
+<span><span class="va">ts</span></span>
+<span><span class="co">#&gt; # A tibble: 84 × 9</span></span>
+<span><span class="co">#&gt;    measure       date       dateTime            value completeness quality valid</span></span>
+<span><span class="co">#&gt;    &lt;chr&gt;         &lt;date&gt;     &lt;dttm&gt;              &lt;dbl&gt; &lt;chr&gt;        &lt;chr&gt;   &lt;chr&gt;</span></span>
+<span><span class="co">#&gt;  1 b0713e87-cab… 2024-04-18 2024-04-18 00:00:00  45.8 Complete     Good    &lt;NA&gt; </span></span>
+<span><span class="co">#&gt;  2 b0713e87-cab… 2024-04-22 2024-04-22 00:00:00  39.0 Complete     Good    &lt;NA&gt; </span></span>
+<span><span class="co">#&gt;  3 b0713e87-cab… 2024-04-25 2024-04-25 00:00:00  36.1 Complete     Good    &lt;NA&gt; </span></span>
+<span><span class="co">#&gt;  4 b0713e87-cab… 2024-04-27 2024-04-27 00:00:00  35.4 Complete     Good    &lt;NA&gt; </span></span>
+<span><span class="co">#&gt;  5 b0713e87-cab… 2024-04-30 2024-04-30 00:00:00  57.8 Complete     Good    &lt;NA&gt; </span></span>
+<span><span class="co">#&gt;  6 b0713e87-cab… 2024-04-28 2024-04-28 00:00:00  53.1 Complete     Good    &lt;NA&gt; </span></span>
+<span><span class="co">#&gt;  7 b0713e87-cab… 2024-04-29 2024-04-29 00:00:00  64.8 Complete     Good    &lt;NA&gt; </span></span>
+<span><span class="co">#&gt;  8 b0713e87-cab… 2024-05-26 2024-05-26 00:00:00  38.5 Complete     Good    &lt;NA&gt; </span></span>
+<span><span class="co">#&gt;  9 b0713e87-cab… 2024-05-20 2024-05-20 00:00:00  22.4 Complete     Good    &lt;NA&gt; </span></span>
+<span><span class="co">#&gt; 10 b0713e87-cab… 2024-05-28 2024-05-28 00:00:00  NA   Incomplete   Missing &lt;NA&gt; </span></span>
+<span><span class="co">#&gt; # ℹ 74 more rows</span></span>
+<span><span class="co">#&gt; # ℹ 2 more variables: invalid &lt;chr&gt;, missing &lt;chr&gt;</span></span></code></pre></div>
+<p>Alternatively, we can supply the station GUID and some additional parameters to retrieve the timeseries data:</p>
+<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">ts</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/ea_timeseries_values.html">ea_timeseries_values</a></span><span class="op">(</span></span>
 <span>  station_guid <span class="op">=</span> <span class="va">guid</span>, observed_property <span class="op">=</span> <span class="st">"waterFlow"</span>,</span>
 <span>  value_type <span class="op">=</span> <span class="st">"mean"</span>, period <span class="op">=</span> <span class="fl">86400</span>, min_date <span class="op">=</span> <span class="va">min_date</span></span>
-<span><span class="op">)</span></span></code></pre></div>
+<span><span class="op">)</span></span>
+<span><span class="va">ts</span></span>
+<span><span class="co">#&gt; # A tibble: 84 × 9</span></span>
+<span><span class="co">#&gt;    measure       date       dateTime            value completeness quality valid</span></span>
+<span><span class="co">#&gt;    &lt;chr&gt;         &lt;date&gt;     &lt;dttm&gt;              &lt;dbl&gt; &lt;chr&gt;        &lt;chr&gt;   &lt;chr&gt;</span></span>
+<span><span class="co">#&gt;  1 b0713e87-cab… 2024-04-18 2024-04-18 00:00:00  45.8 Complete     Good    &lt;NA&gt; </span></span>
+<span><span class="co">#&gt;  2 b0713e87-cab… 2024-04-22 2024-04-22 00:00:00  39.0 Complete     Good    &lt;NA&gt; </span></span>
+<span><span class="co">#&gt;  3 b0713e87-cab… 2024-04-25 2024-04-25 00:00:00  36.1 Complete     Good    &lt;NA&gt; </span></span>
+<span><span class="co">#&gt;  4 b0713e87-cab… 2024-04-27 2024-04-27 00:00:00  35.4 Complete     Good    &lt;NA&gt; </span></span>
+<span><span class="co">#&gt;  5 b0713e87-cab… 2024-04-30 2024-04-30 00:00:00  57.8 Complete     Good    &lt;NA&gt; </span></span>
+<span><span class="co">#&gt;  6 b0713e87-cab… 2024-04-28 2024-04-28 00:00:00  53.1 Complete     Good    &lt;NA&gt; </span></span>
+<span><span class="co">#&gt;  7 b0713e87-cab… 2024-04-29 2024-04-29 00:00:00  64.8 Complete     Good    &lt;NA&gt; </span></span>
+<span><span class="co">#&gt;  8 b0713e87-cab… 2024-05-26 2024-05-26 00:00:00  38.5 Complete     Good    &lt;NA&gt; </span></span>
+<span><span class="co">#&gt;  9 b0713e87-cab… 2024-05-20 2024-05-20 00:00:00  22.4 Complete     Good    &lt;NA&gt; </span></span>
+<span><span class="co">#&gt; 10 b0713e87-cab… 2024-05-28 2024-05-28 00:00:00  NA   Incomplete   Missing &lt;NA&gt; </span></span>
+<span><span class="co">#&gt; # ℹ 74 more rows</span></span>
+<span><span class="co">#&gt; # ℹ 2 more variables: invalid &lt;chr&gt;, missing &lt;chr&gt;</span></span></code></pre></div>
 <p>Once we have obtained the data we can plot the timeseries:</p>
-<p><img src="reference/figures/README-unnamed-chunk-4-1.png" width="100%"></p>
+<p><img src="reference/figures/README-unnamed-chunk-9-1.png" width="100%"></p>
 <!-- README.md is generated from README.Rmd. Please edit that file -->
 </div>
 </div>
