@@ -4,12 +4,13 @@
 \alias{ea_timeseries_list}
 \title{Get list of available time series for one or more stations}
 \usage{
-ea_timeseries_list(station_id, ...)
+ea_timeseries_list(station_guid, ...)
 }
 \arguments{
-\item{station_id}{Character or numeric. Either a single station ID or a
-vector of station IDs. This corresponds to the \code{notation} column in
-metadata returned by \code{ea_station_list}.}
+\item{station_guid}{Character. Station global unique identifier.
+Either a single station ID or a vector of station IDs. This
+corresponds to the \code{stationGuid} column in metadata returned
+by \code{ea_station_list}.}
 
 \item{...}{Additional arguments. None implemented.}
 }
@@ -18,4 +19,15 @@ A tibble.
 }
 \description{
 Get list of available time series for one or more stations
+}
+\examples{
+\dontrun{
+# Get discharge stations on the River Thames within 20km of Abingdon
+abingdon_stations <- ea_station_list(
+  sample_of = "River Thames", observed_property = "waterFlow",
+  lat = 51.6708, long = -1.2880, dist = 20
+)
+guid <- abingdon_stations$stationGuid
+tslist <- ea_timeseries_list(guid)
+}
 }

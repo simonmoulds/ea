@@ -6,7 +6,7 @@
 \usage{
 ea_timeseries_values(
   measure,
-  station_id,
+  station_guid,
   observed_property,
   value_type,
   period,
@@ -19,15 +19,21 @@ ea_timeseries_values(
 )
 }
 \arguments{
-\item{measure}{Character.}
+\item{measure}{Character. String that uniquely identifies the
+measurement. This is provided in the \code{notation} column of the
+tibble returned by \code{\link[=ea_timeseries_list]{ea_timeseries_list()}}.}
 
-\item{station_id}{Character. Station GUID.}
+\item{station_guid}{Character. Station global unique identifier.
+Not used if \code{measure} is supplied.}
 
-\item{observed_property}{Character. Observation property.}
+\item{observed_property}{Character. Observation property. Not
+used if \code{measure} is supplied.}
 
-\item{value_type}{Character. Value type.}
+\item{value_type}{Character. Value type. Not used if \code{measure}
+is supplied.}
 
-\item{period}{Integer. Period between readings in seconds.}
+\item{period}{Integer. Period between readings in seconds. Not
+used if \code{measure} is supplied.}
 
 \item{date}{Date or character formatted "YYYY-MM-DD"}
 
@@ -47,5 +53,36 @@ measurements on record.}
 A tibble.
 }
 \description{
-Get time series data for one or more stations
+\code{ea_timeseries_values()} is used to retrieve timeseries data in
+one of two ways. Firstly, you may supply the \code{measure} argument,
+which is a string that uniquely identifies the measurement and
+is provided in the \code{notation} column in the tibble returned by
+\code{\link[=ea_timeseries_list]{ea_timeseries_list()}}. Alternatively, you can provide \code{station_guid},
+\code{observed_property}, \code{value_type} and \code{period} to uniquely define
+the measurement.
+}
+\examples{
+\dontrun{
+
+# Get discharge stations on the River Thames within 5km of Abingdon
+abingdon_stations <- ea_station_list(
+  sample_of = "River Thames", observed_property = "waterFlow",
+  lat = 51.6708, long = -1.2880, dist = 5
+)
+guid <- abingdon_stations$stationGuid
+tslist <- ea_timeseries_list(guid)
+
+# Filter to get daily mean flow 
+measure <- tslist |> 
+  filter(period == 86400 & valueType == "mean") |> 
+  pull(notation)
+min_date = Sys.Date() - lubridate::days(31)
+ts <- ea_timeseries_values(measure, min_date = min_date)
+
+# Alternatively: 
+ts <- ea_timeseries_values(
+  station_guid = guid, observed_property = "waterFlow",
+  value_type = "mean", period = 86400, min_date = min_date
+)
+}
 }

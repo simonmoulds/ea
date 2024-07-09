@@ -1,32 +1,76 @@
 
-
 ea_base_url <- function() {
   root <- "http://environment.data.gov.uk/hydrology"
   return(root)
 }
 
-
 #' Get tibble with station information
 #'
-#' Returns metadata about stations in the EA network.
+#' Returns metadata about hydrological stations in the EA network.
+#' 
+#' @section Measured variables:
+#' 
+#' The argument `observed_property` allows you to select stations based on
+#' the variables they measure. Here are the available options:
+#' * `waterFlow`
+#' * `waterLevel`
+#' * `rainfall`
+#' * `groundwaterLevel`
+#' * `dissolved-oxygen`
+#' * `fdom`
+#' * `bga`
+#' * `turbidity`
+#' * `chlorophyll`
+#' * `conductivity`
+#' * `temperature`
+#' * `ammonium`
+#' * `nitrate`
+#' * `ph`
 #'
-#' @param station_id Character.
-#' @param sample_of Character.
-#' @param status_label Character. One of 'Active', 'Suspended' or
+#' @param station_guid Character. Station globally unique identifer. Only 
+#'   one station can be provided at once.  
+#' @param sample_of Character. River name (e.g. "River Thames"). Note
+#'   that rivers are named inconsistently, so it may be necessary to 
+#'   supply multiple versions of river names.
+#' @param status_label Character. One of 'Active', 'Suspended' or 'Closed'
 #' @param observed_property Character.
 #' @param open_from Date or character formatted "YYYY-MM-DD"
 #' @param open_to Date or character formatted "YYYY-MM-DD"
-#' @param long Numeric. Longitude.
-#' @param lat Numeric. Latitude.
-#' @param easting Numeric. Easting.
-#' @param northing Numeric. Northing.
+#' @param long Numeric. The longitude of the centre of the search area 
+#'   with radius `dist`.
+#' @param lat Numeric. The latitude of the centre of the search area 
+#'   with radius `dist`. 
+#' @param easting Numeric. The easting of the centre of the search area 
+#'   with radius `dist`.
+#' @param northing Numeric. The northing of the centre of the search area 
+#'   with radius `dist`.
 #' @param dist Numeric. Distance in kilometres from the point
 #'   specified by `long` and `lat` or `easting` and `northing`.
 #' @param ... Additional arguments. None implemented.
 #'
 #' @return A tibble.
 #' @export
-ea_station_list <- function(station_id,
+#' @examples
+#' 
+#' \dontrun{ 
+#' # Get all stations that collect river discharge 
+#' x <- ea_station_list(observed_property = "waterFlow")
+#' 
+#' # Get metadata for a certain station
+#' id <- x$stationGuid[1]
+#' y <- ea_station_list(station_guid = id)
+#' 
+#' # Get metadata for all stations on the Thames
+#' thames_nms <- c("River Thames", "RIVER THAMES", "THAMES")
+#' thames_stations <- ea_station_list(sample_of = thames_nms)
+#' 
+#' # Get discharge stations on the River Thames within 20km of Abingdon
+#' abingdon_stations <- ea_station_list(
+#'   sample_of = thames_nms, observed_property = "waterFlow",
+#'   lat = 51.6708, long = -1.2880, dist = 20
+#' )
+#' }
+ea_station_list <- function(station_guid,
                             sample_of,
                             status_label,
                             observed_property,
@@ -44,15 +88,15 @@ ea_station_list <- function(station_id,
 
   api_query <- list()
 
-  if (!missing(station_id)) {
-    api_url <- paste0(api_url, "/", station_id)
-
+  if (!missing(station_guid)) {
+    if (length(station_guid) > 1) { 
+      stop("Only one station GUID can be provided at once")
+    }
+    api_url <- paste0(api_url, "/", station_guid)
   } else {
-
     if (!missing(sample_of)) {
       api_query <- c(api_query, list(riverName = sample_of))
     }
-
     if (!missing(status_label)) {
       valid_status <- c("Active", "Suspended", "Closed")
       if (!status_label %in% valid_status) {
@@ -65,20 +109,18 @@ ea_station_list <- function(station_id,
       }
       api_query <- c(api_query, list(`status.label` = status_label))
     }
-
     if (!missing(observed_property)) {
       valid_properties <- c(
         "waterFlow", "waterLevel", "rainfall", "groundwaterLevel",
         "dissolved-oxygen", "fdom", "bga", "turbidity", "chlorophyll",
         "conductivity", "temperature", "ammonium", "nitrate", "ph"
       )
-      if (!observed_property %in% valid_properties) {
+      if (!all(observed_property %in% valid_properties)) {
         stop("Invalid observed property")
       }
       ## TODO more than one observed property allowed?
       api_query <- c(api_query, list(observedProperty = observed_property))
     }
-
     ## This endpoint seems to be unreliable
     if (!missing(open_from) | !missing(open_to)) {
       api_url <- paste0(ea_base_url(), "/id/open/stations")
@@ -155,7 +197,7 @@ ea_station_list <- function(station_id,
 
   ## Send request
   raw <- request(api_url) |> 
-    req_url_query(!!!api_query) |> 
+    req_url_query(!!!api_query, .multi = "explode") |> 
     req_timeout(30) |>
     req_user_agent("sepa (https://github.com/simonmoulds/ea)") |>
     req_perform()
@@ -172,26 +214,34 @@ ea_station_list <- function(station_id,
     x = json_content$items,
     .name_repair = "minimal"
   )
-
   return(content_dat)
 }
 
-
 #' Get list of available time series for one or more stations
 #'
-#' @param station_id Character or numeric. Either a single station ID or a
-#'   vector of station IDs. This corresponds to the `notation` column in
-#'   metadata returned by `ea_station_list`.
+#' @param station_guid Character. Station global unique identifier. 
+#'   Either a single station ID or a vector of station IDs. This 
+#'   corresponds to the `stationGuid` column in metadata returned 
+#'   by `ea_station_list`.
 #' @param ... Additional arguments. None implemented.
 #'
 #' @return A tibble.
 #' @export
-ea_timeseries_list <- function(station_id, ...) {
+#' @examples
+#' \dontrun{
+#' # Get discharge stations on the River Thames within 20km of Abingdon
+#' abingdon_stations <- ea_station_list(
+#'   sample_of = "River Thames", observed_property = "waterFlow",
+#'   lat = 51.6708, long = -1.2880, dist = 20
+#' )
+#' guid <- abingdon_stations$stationGuid
+#' tslist <- ea_timeseries_list(guid)
+#' }
+ea_timeseries_list <- function(station_guid, ...) {
 
   api_url <- ea_base_url()
   api_url <- paste0(api_url, "/id/measures")
-  
-  api_query <- list(station = station_id)
+  api_query <- list(station = station_guid)
 
   ## Send request
   raw <- request(api_url) |> 
@@ -217,11 +267,26 @@ ea_timeseries_list <- function(station_id, ...) {
 
 #' Get time series data for one or more stations
 #'
-#' @param measure Character.
-#' @param station_id Character. Station GUID.
-#' @param observed_property Character. Observation property.
-#' @param value_type Character. Value type.
-#' @param period Integer. Period between readings in seconds. 
+#' @description
+#' `ea_timeseries_values()` is used to retrieve timeseries data in 
+#' one of two ways. Firstly, you may supply the `measure` argument, 
+#' which is a string that uniquely identifies the measurement and 
+#' is provided in the `notation` column in the tibble returned by 
+#' [ea_timeseries_list()]. Alternatively, you can provide `station_guid`, 
+#' `observed_property`, `value_type` and `period` to uniquely define 
+#' the measurement.
+#' 
+#' @param measure Character. String that uniquely identifies the 
+#'   measurement. This is provided in the `notation` column of the
+#'   tibble returned by [ea_timeseries_list()].
+#' @param station_guid Character. Station global unique identifier. 
+#'   Not used if `measure` is supplied.
+#' @param observed_property Character. Observation property. Not 
+#'   used if `measure` is supplied.
+#' @param value_type Character. Value type. Not used if `measure` 
+#'   is supplied.
+#' @param period Integer. Period between readings in seconds. Not
+#'   used if `measure` is supplied.
 #' @param date Date or character formatted "YYYY-MM-DD"
 #' @param min_date Date or character formatted "YYYY-MM-DD"
 #' @param max_date Date or character formatted "YYYY-MM-DD"
@@ -233,8 +298,32 @@ ea_timeseries_list <- function(station_id, ...) {
 #'
 #' @return A tibble.
 #' @export
+#' @examples 
+#' \dontrun{
+#' 
+#' # Get discharge stations on the River Thames within 5km of Abingdon
+#' abingdon_stations <- ea_station_list(
+#'   sample_of = "River Thames", observed_property = "waterFlow",
+#'   lat = 51.6708, long = -1.2880, dist = 5
+#' )
+#' guid <- abingdon_stations$stationGuid
+#' tslist <- ea_timeseries_list(guid)
+#' 
+#' # Filter to get daily mean flow 
+#' measure <- tslist |> 
+#'   filter(period == 86400 & valueType == "mean") |> 
+#'   pull(notation)
+#' min_date = Sys.Date() - lubridate::days(31)
+#' ts <- ea_timeseries_values(measure, min_date = min_date)
+#' 
+#' # Alternatively: 
+#' ts <- ea_timeseries_values(
+#'   station_guid = guid, observed_property = "waterFlow",
+#'   value_type = "mean", period = 86400, min_date = min_date
+#' )
+#' }
 ea_timeseries_values <- function(measure,
-                                 station_id,
+                                 station_guid,
                                  observed_property,
                                  value_type,
                                  period,
@@ -248,7 +337,7 @@ ea_timeseries_values <- function(measure,
   api_url <- paste0(ea_base_url(), "/data/readings.json")
 
   if (missing(measure)) {
-    if (missing(station_id) & missing(observed_property)) {
+    if (missing(station_guid) && missing(observed_property)) {
       stop(
         strwrap(
           "Either `measure` or `station` and `observation_type` should be 
@@ -259,10 +348,20 @@ ea_timeseries_values <- function(measure,
       if (missing(period)) {
         warning("`period` not supplied: defaulting to daily (86400)")
         period <- 86400
+      } else { 
+        if (!is.numeric(period)) { 
+          stop(
+            strwrap(
+              "`period` should be an integer number of seconds between 
+              measurements (e.g. for daily data set period to 86400)",
+              prefix = " ", initial = ""
+            )
+          )
+        }
       }
     }
     api_query <- list(
-      station = station_id,
+      station = station_guid,
       observedProperty = observed_property,
       period = period
     )
@@ -271,13 +370,13 @@ ea_timeseries_values <- function(measure,
     }
 
   } else {
-    if (!missing(station_id) ||
+    if (!missing(station_guid) ||
         !missing(observed_property) ||
         !missing(value_type)) {
 
       warning(
         strwrap(
-          "Arguments `station_id`, `observed_property` and `period` 
+          "Arguments `station_guid`, `observed_property` and `period` 
           are redundant when `measure` is supplied", 
           prefix = " ", initial = ""
         )

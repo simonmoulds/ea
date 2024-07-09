@@ -6,7 +6,7 @@
 \alias{ea-package}
 \title{ea: Retrieve hydrological data from the Environment Agency}
 \description{
-Functions to discover and download data from the Environment Agency (EA) API.
+Functions to discover and download data from the Environment Agency (EA) Hydrology API.
 }
 \examples{
 \dontrun{
