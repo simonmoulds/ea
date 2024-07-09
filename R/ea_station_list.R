@@ -313,7 +313,7 @@ ea_timeseries_list <- function(station_guid, ...) {
 #' measure <- tslist |> 
 #'   filter(period == 86400 & valueType == "mean") |> 
 #'   pull(notation)
-#' min_date = Sys.Date() - lubridate::days(31)
+#' min_date <- Sys.Date() - lubridate::days(31)
 #' ts <- ea_timeseries_values(measure, min_date = min_date)
 #' 
 #' # Alternatively: 
