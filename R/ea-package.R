@@ -1,4 +1,4 @@
-#' ea: Retrieve hydrological data from the Environment Agency
+#' ea: Retrieve data from the Environment Agency Hydrology API
 #'
 #' @aliases NULL ea-package
 #' @import dplyr
@@ -7,9 +7,4 @@
 #' @importFrom jsonlite fromJSON
 #' @importFrom tibble as_tibble
 #' @importFrom tidyr unnest
-#'
-#' @examples
-#' \dontrun{
-#' print("Hello, world")
-#' }
 "_PACKAGE"

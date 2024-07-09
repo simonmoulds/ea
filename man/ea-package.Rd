@@ -13,6 +13,13 @@ Functions to discover and download data from the Environment Agency (EA) Hydrolo
 print("Hello, world")
 }
 }
+\seealso{
+Useful links:
+\itemize{
+  \item \url{https://simonmoulds.github.io/ea/}
+}
+
+}
 \author{
 \strong{Maintainer}: Simon Moulds \email{simon.moulds@gmail.com} (\href{https://orcid.org/0000-0002-7297-482X}{ORCID})
 

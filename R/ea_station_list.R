@@ -4,9 +4,9 @@ ea_base_url <- function() {
   return(root)
 }
 
-#' Get tibble with station information
+#' Get station metadata
 #'
-#' Returns metadata about hydrological stations in the EA network.
+#' Returns metadata about measurement stations in the EA network.
 #' 
 #' @section Measured variables:
 #' 
@@ -217,7 +217,7 @@ ea_station_list <- function(station_guid,
   return(content_dat)
 }
 
-#' Get list of available time series for one or more stations
+#' Get available timeseries for one or more stations
 #'
 #' @param station_guid Character. Station global unique identifier. 
 #'   Either a single station ID or a vector of station IDs. This 
@@ -265,7 +265,7 @@ ea_timeseries_list <- function(station_guid, ...) {
 }
 
 
-#' Get time series data for one or more stations
+#' Get timeseries data for one or more stations
 #'
 #' @description
 #' `ea_timeseries_values()` is used to retrieve timeseries data in 

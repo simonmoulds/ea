@@ -25,7 +25,7 @@ The ea package provides access to Environment Agency (EA) Hydrology API.
 
 You can install the development version of ea from [GitHub](https://github.com/) with:
 
-```{r}
+```{r message=FALSE}
 devtools::install_github("simonmoulds/ea")
 ```
 
@@ -33,41 +33,57 @@ devtools::install_github("simonmoulds/ea")
 
 Here is a basic example that shows you how to use the package to download streamflow timeseries data from the EA Hydrology API:
 
-```{r example}
+```{r message=FALSE}
 library(dplyr)
 library(lubridate)
 library(ggplot2)
 library(ea)
 ```
 
-The steps required to download historical streamflow data are outlined below: 
+First we get discharge stations on the River Thames within 5km of Abingdon:
 ```{r}
-# Get discharge stations on the River Thames within 5km of Abingdon
-abingdon_stations <- ea_station_list(
+stns <- ea_station_list(
   sample_of = "River Thames", observed_property = "waterFlow",
   lat = 51.6708, long = -1.2880, dist = 5
 )
-guid <- abingdon_stations$stationGuid
-tslist <- ea_timeseries_list(guid)
+stns
+```
 
-# Filter to get daily mean flow 
+There is only one station available. We extract its global unique identifier (GUID), and use `ea_timeseries_list` to retrieve the available timeseries data:
+```{r}
+guid <- stns$stationGuid
+tslist <- ea_timeseries_list(guid)
+tslist
+```
+
+We can see that there are several timeseries available for this station, each referenced with a unique measurement ID provided in the `notation` column. We retrieve the ID for daily mean flow:
+```{r}
 measure <- tslist |>
   filter(period == 86400 & valueType == "mean") |> 
   pull(notation)
+measure
+```
+
+We can use the measurement ID to retrieve the timeseries data:
+```{r}
 min_date <- Sys.Date() %m-% months(3)
 ts <- ea_timeseries_values(measure, min_date = min_date)
+ts
+``` 
 
-# Alternatively: 
+Alternatively, we can supply the station GUID and some additional parameters to retrieve the timeseries data:
+```{r}
 ts <- ea_timeseries_values(
   station_guid = guid, observed_property = "waterFlow",
   value_type = "mean", period = 86400, min_date = min_date
 )
+ts
 ```
 
 Once we have obtained the data we can plot the timeseries:
 
 ```{r, echo = FALSE}
-p <- ggplot(data = ts, aes(x = date, y = value)) + geom_line()
+p <- ggplot(data = ts, aes(x = date, y = value)) + geom_line() + xlab("") + ylab(expression(paste("Daily mean flow [", m^3, "/", s, "]"))) + theme_bw()
 p
 ```
 

@@ -56,9 +56,10 @@ specified by \code{long} and \code{lat} or \code{easting} and \code{northing}.}
 A tibble.
 }
 \description{
-Returns metadata about stations in the EA network.
+Returns metadata about hydrological stations in the EA network.
 }
 \section{Measured variables}{
+
 
 The argument \code{observed_property} allows you to select stations based on
 the variables they measure. Here are the available options:
