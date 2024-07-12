@@ -1,4 +1,7 @@
-#' ea: Retrieve data from the Environment Agency Hydrology API
+#' ea: Hydrological Data from the Environment Agency
+#' 
+#' Functions to discover and download data from the Environment Agency (EA) 
+#' Hydrology API.
 #'
 #' @aliases NULL ea-package
 #' @import dplyr

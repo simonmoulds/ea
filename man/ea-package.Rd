@@ -4,14 +4,10 @@
 \name{ea-package}
 \alias{ea}
 \alias{ea-package}
-\title{ea: Retrieve hydrological data from the Environment Agency}
+\title{ea: Hydrological Data from the Environment Agency}
 \description{
-Functions to discover and download data from the Environment Agency (EA) Hydrology API.
-}
-\examples{
-\dontrun{
-print("Hello, world")
-}
+Functions to discover and download data from the Environment Agency (EA)
+Hydrology API.
 }
 \seealso{
 Useful links:
@@ -21,6 +17,6 @@ Useful links:
 
 }
 \author{
-\strong{Maintainer}: Simon Moulds \email{simon.moulds@gmail.com} (\href{https://orcid.org/0000-0002-7297-482X}{ORCID})
+\strong{Maintainer}: Simon Moulds \email{sim.moulds@gmail.com} (\href{https://orcid.org/0000-0002-7297-482X}{ORCID})
 
 }

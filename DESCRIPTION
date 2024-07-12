@@ -1,8 +1,8 @@
 Package: ea
-Title: Hydrological data from EA
+Title: Hydrological Data from the Environment Agency
 Version: 0.0.0.9000
 Authors@R:
-    person("Simon", "Moulds", , "simon.moulds@gmail.com", role = c("aut", "cre"),
+    person("Simon", "Moulds", , "sim.moulds@gmail.com", role = c("aut", "cre"),
            comment = c(ORCID = "0000-0002-7297-482X"))
 Description: 
     Functions to discover and download data from the Environment Agency 

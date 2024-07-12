@@ -2,7 +2,7 @@
 % Please edit documentation in R/ea_station_list.R
 \name{ea_station_list}
 \alias{ea_station_list}
-\title{Get tibble with station information}
+\title{Get station metadata}
 \usage{
 ea_station_list(
   station_guid,
@@ -56,7 +56,7 @@ specified by \code{long} and \code{lat} or \code{easting} and \code{northing}.}
 A tibble.
 }
 \description{
-Returns metadata about hydrological stations in the EA network.
+Returns metadata about measurement stations in the EA network.
 }
 \section{Measured variables}{
 
@@ -82,7 +82,6 @@ the variables they measure. Here are the available options:
 }
 
 \examples{
-
 \dontrun{ 
 # Get all stations that collect river discharge 
 x <- ea_station_list(observed_property = "waterFlow")
